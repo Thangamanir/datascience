@@ -1,0 +1,448 @@
+---
+title: "Thera Bank Project"
+author: "Thangamani R"
+date: "3/6/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+```{r}
+#Set the working directory
+getwd()
+setwd("/Users/disrt/Documents/DSBA/Week12")
+chooseCRANmirror(graphics=FALSE, ind=1)
+#Install the package for loading excel
+#install.packages('readxl')
+library("readxl")
+##Read the Excel File
+thera_df=read_excel('Thera Bank_Personal_Loan_Modelling-dataset-1.xlsx',sheet='Bank_Personal_Loan_Modelling')
+head(thera_df)
+
+# Find missing values
+anyNA(thera_df)
+#is.na(thera_df)
+
+sum(is.na(thera_df))
+
+#is.na.data.frame(thera_df)
+which(is.na(thera_df), arr.ind=TRUE)
+dim(thera_df)
+
+summary(thera_df)
+#Columnn 6(Family Members) has NA values for 18 rows listed by the command above
+# Either the customer has no family members(0) or the column has been left blank intentionally
+
+#Assuming the customer has no family members , replace the NA values with 0's or Remove the NA rows
+#In this case we are removing the NA Rows
+
+#Remove the NA Rows
+thera_df=thera_df[complete.cases(thera_df), ]
+head(thera_df)
+dim(thera_df)
+
+#verifying if there are more missing values.
+sum(is.na(thera_df))
+```
+```{r}
+#Univariate Analysis
+#For Numerical and continuous variables
+
+hist(thera_df$`Age (in years)`,col='lightblue',main='Histogram of Age',xlab='Age')
+hist(thera_df$`Income (in K/month)`,col='lightblue',main='Histogram of Income',xlab='Income in (K)',breaks=5)
+hist(thera_df$CCAvg ,col='lightblue',main='Histogram of Credit Card Average ',xlab='Credit Card Average Spending by month')
+hist(thera_df$Mortgage  ,col='lightblue',main='Histogram of Mortgage ',xlab='Mortgage',breaks=5)
+hist(thera_df$`Experience (in years)`  ,col='lightblue',main='Histogram of Experience ',xlab='Experience in Years',breaks=5)
+
+boxplot(thera_df$`Age (in years)`)
+boxplot(thera_df$`Income (in K/month)`)
+boxplot(thera_df$`Experience (in years)`  )
+boxplot(thera_df$CCAvg  )
+boxplot(thera_df$Mortgage)
+```
+```{r}
+#Univariate Analysis - Categorical variables
+#install.packages("ggplot2")
+install.packages("lattice")
+
+install.packages("corrplot")
+#install.packages("dplyr")
+install.packages("pacman")
+install.packages("qplot")
+require("pacman")
+
+#p_load(pacman,ggplot2,lattice,corrplot,dplyr)
+
+p_load(pacman,lattice,corrplot,qplot)
+
+table(thera_df$`Family members`)
+table(thera_df$`Personal Loan` )
+table(thera_df$`Securities Account` )
+table(thera_df$Education )
+table(thera_df$`CD Account` )
+table(thera_df$Online)
+
+thera_df$Family_mem_cat=as.character(thera_df$`Family members`)
+thera_df$Personal_loan_cat=as.character(thera_df$`Personal Loan`)
+thera_df$Secu_Account_cat=as.character(thera_df$`Securities Account` )
+thera_df$Education_cat=as.character(thera_df$Education )
+thera_df$CD_Account_cat=as.character(thera_df$`CD Account` )
+thera_df$Online_cat=as.character(thera_df$Online )
+
+
+barchart(thera_df$Family_mem_cat,col='lightblue',main='Family Members',xlab='Family Members')
+barchart(thera_df$Personal_loan_cat,col='lightblue',main='Personal Loan',xlab='Personal Loan')
+
+barchart(thera_df$Secu_Account_cat ,col='lightblue',main='Securities Account',xlab='Securities Account')
+
+barchart(thera_df$Education_cat ,col='lightblue',main='Education',xlab='Education')
+barchart(thera_df$CD_Account_cat ,col='lightblue',main='CD Account',xlab='CD Account')
+barchart(thera_df$Online_cat ,col='lightblue',main='Online',xlab='Online')
+```
+
+```{r}
+#Bi-variate Analysis
+#corrplot --Can be used only for numeric or continuous variables 
+library(corrplot)
+correl<-- cor(thera_df[,c(2:4,7,9)])
+corrplot(correl)
+
+#No significant finding on the relationship between variables from the corrplot
+```
+
+```{r}
+
+#install.packages("ggplot2")
+library('ggplot2')
+
+
+plot(thera_df$`Age (in years)`, thera_df$Personal_loan_cat , xlab= "age", ylab="personal Loan", main ="age vs personal loan")
+abline(lm(thera_df$`Age (in years)`~thera_df$Personal_loan_cat),col=c("Red"))
+
+plot(thera_df$CreditCard, thera_df$`Personal Loan` , xlab= "CC", ylab="personal Loan", main ="CC vs personal loan")
+abline(lm(thera_df$CreditCard~thera_df$`Personal Loan`),col=c("Red"))
+
+qplot(thera_df$CreditCard, thera_df$`Personal Loan`,data=thera_df,xlab="Credit Card",ylab="Personal Loan"
+      ,main="Credit Card Vs Personal Loan")
+
+
+plot(thera_df$`Age (in years)`, thera_df$`Experience (in years)` )
+
+plot(thera_df$`Age (in years)`, thera_df$`Income (in K/month)` )
+
+plot(thera_df$`Age (in years)`, thera_df$CCAvg )
+
+plot(thera_df$`Age (in years)`, thera_df$Mortgage  )
+
+head(thera_df)
+
+
+# dat <- data.frame(table(thera_df$`Age (in years)`,thera_df$`Family members`))
+# names(dat) <- c("`Age (in years)`","`Family members`","Count")
+# 
+# ggplot(data=dat, aes(x="`Age (in years)`", y=Count, fill="`Family members`")) + geom_bar(stat="identity")
+
+ggplot(thera_df,aes(x=Mortgage,y=Family_mem_cat))+geom_point()+coord_flip()
+
+ggplot(thera_df,aes(x=`Income (in K/month)`,y=Family_mem_cat))+geom_point()+coord_flip()
+
+ggplot(thera_df,aes(x=`Income (in K/month)`,y=Education))+geom_point()+coord_flip()
+
+
+
+ggplot(thera_df,aes(x=`Income (in K/month)`,y=`Experience (in years)`))+geom_point()+coord_flip()
+
+ggplot(thera_df,aes(x=`Income (in K/month)`,y=`Personal Loan`))+geom_point()+coord_flip()
+ggplot(thera_df,aes(x=`Income (in K/month)`,y=`CreditCard`))+geom_point()
+
+ggplot(thera_df,aes(x=`Mortgage`,y=`Education`))+geom_point()+coord_flip()
+
+ggplot(thera_df,aes(x=`Securities Account`))+geom_bar()
+
+#x=`Income (in K/month)`,
+```
+
+```{r}
+##Clustering
+str(thera_df)
+sum(is.na(thera_df))
+
+thera_df_num=thera_df[c(2:9,10,11:14)]
+
+head(thera_df_num)
+summary(thera_df_num)
+dim(thera_df_num)
+sapply(thera_df_num, class)
+sapply(thera_df, class)
+#Scaled
+thera_df_num_scaled=scale(thera_df_num,center=TRUE,scale=TRUE)
+
+head(thera_df_num_scaled)
+```
+Hierarchical Clustering
+```{r}
+#hierarchial clustering
+
+dist_matrix=dist(thera_df_num_scaled,method="euclidean")
+#dist_matrix
+res.hclust=hclust(dist_matrix,method="ward.D2")
+plot(res.hclust,labels=as.character(thera_df$ID))
+rect.hclust(res.hclust,k=10, border="blue")
+#dist_matrix
+res.hclust=hclust(dist_matrix,method="average")
+plot(res.hclust,labels=as.character(thera_df$ID))
+res.hclust=hclust(dist_matrix,method="complete")
+plot(res.hclust,labels=as.character(thera_df$ID))
+rect.hclust(res.hclust,k=10, border="blue")
+```
+#K-Means Clustering
+```{r}
+
+#k-Means clustering
+set.seed(2345)
+require(ggplot2)
+library(cluster)
+cluster=kmeans(thera_df_num_scaled,50)
+#cluster$cluster
+#cluster$centers
+clusplot(thera_df_num_scaled,cluster$cluster,color=TRUE,labels=2,shade=FALSE,lines=1)
+
+
+```
+
+```{r}
+kmeans_withinss=function(k){
+  cluster=kmeans(thera_df_num_scaled,k)
+  return(cluster$tot.withinss)
+}
+
+kmeans_withinss(20)
+max=300
+wss=sapply(2:max,kmeans_withinss)
+elbow=data.frame(2:max,wss)
+ggplot(elbow,aes(x=X2.max,y=wss))+geom_point()+geom_line()+scale_x_continuous(breaks=seq(1,5000 , by=20))
+```
+
+```{r}
+#Replot the cluster with k=100
+cluster_100=kmeans(thera_df_num_scaled,100)
+#cluster$cluster
+#cluster$centers
+clusplot(thera_df_num_scaled,cluster_100$cluster,color=TRUE,labels=2,shade=FALSE,lines=1)
+
+
+
+```
+```{r}
+## Aggregate columns for each cluster by their means
+
+dim(thera_df_num)
+segmented_thera_df=thera_df_num
+segmented_thera_df$Cluster = cluster_100$cluster
+
+custProfile = aggregate(segmented_thera_df,list(segmented_thera_df$Cluster),FUN="mean")
+print(custProfile)
+```
+
+CART Model
+```{r}
+str(thera_df_num)
+
+str(thera_df)
+#Change the target variable as a factor (categorical) variable.  
+thera_df_num$`Personal Loan`=as.factor(thera_df$`Personal Loan`)
+str(thera_df_num)
+
+print(sum(thera_df_num$`Personal Loan`=="1")/nrow(thera_df_num))
+
+colnames(thera_df_num)[colnames(thera_df_num)=="Personal Loan"]<-"Personal_Loan"
+colnames(thera_df_num)[colnames(thera_df_num)=="Age (in years)"]<-"Age"
+colnames(thera_df_num)[colnames(thera_df_num)=="Experience (in years)"]<-"Experience"
+colnames(thera_df_num)[colnames(thera_df_num)=="Income (in K/month)"]<-"Income"
+colnames(thera_df_num)[colnames(thera_df_num)=="ZIP Code"]<-"ZipCode"
+colnames(thera_df_num)[colnames(thera_df_num)=="Securities Account"]<-"SecuritiesAccount"
+colnames(thera_df_num)[colnames(thera_df_num)=="Family members"]<-"FamilyMembers"
+colnames(thera_df_num)[colnames(thera_df_num)=="CD Account"]<-"CDAccount"
+#setnames(thera_df_num, old = c('ZIP Code','Securities Account','Family members'), new = #c('ZipCode','SecuritiesAccount','FamilyMembers'))
+seed=1234
+set.seed(seed)
+index<-sample(1:nrow(thera_df_num),0.70*nrow(thera_df_num))
+
+#Train and test data
+train<-thera_df_num[index,]
+test<-thera_df_num[-index,]
+
+dim(train)
+dim(test)
+```
+
+```{r}
+library(rpart)
+library(rpart.plot)
+
+head(train)
+tree = rpart(formula=Personal_Loan ~., data=train,method="class",minbucket=3,cp=0)
+
+rpart.plot(tree)
+
+printcp(tree)
+plotcp(tree)
+```
+Pruning the tree
+```{r}
+ptree= prune(tree,cp=0.003,"CP")
+printcp(ptree)
+rpart.plot(ptree)
+
+path.rpart(ptree,c(4:10))
+evaldf=train
+evaldf$CART_pred=predict(ptree,data=train,type="class")
+evaldf$CART_prob=predict(ptree,data=train,type="prob")
+
+#Test Prediction and probability
+evaldf_test=test
+dim(evaldf_test)
+#print(predict(ptree,test,type="class"))
+
+evaldf_test$CART_pred=predict(ptree,test,type="class")
+evaldf_test$CART_prob=predict(ptree,test,type="prob")
+
+```
+
+
+```{r}
+#install.packages('randomForest')
+library(randomForest)
+summary(thera_df_num)
+RForest =randomForest( Personal_Loan ~.,data=train,ntree=501,mtry=10,nodesize=50,importance=TRUE,cp=0)
+print(RForest)
+plot(RForest)
+importance(RForest)
+```
+Tune the Random Forest
+```{r}
+str(train)
+set.seed(1234)
+tRndFor = tuneRF(x = train[,-c(9)], 
+              y=train$Personal_Loan,
+              mtryStart = 3, 
+              ntreeTry = 201, 
+              stepFactor = 1.5, 
+              improve = 0.0001, 
+              trace=TRUE, 
+              plot = TRUE,
+              doBest = TRUE,
+              nodesize = 10, 
+              importance=TRUE
+)
+importance(tRndFor)
+```
+Model Evaluations
+```{r}
+
+#Cart Model Evaluation
+tbl = table(train$Personal_Loan,evaldf$CART_pred)
+print(tbl)
+print((tbl[1,2]+tbl[2,1])/nrow(thera_df_num))
+install.packages("caret")
+install.packages('e1071',dependencies=TRUE)
+library(caret)
+confusionMatrix(evaldf$CART_pred , evaldf$Personal_Loan)
+
+library(ROCR)
+print("CART Evaluation Params For train Data")
+pred <- prediction(evaldf$CART_prob[,"1"], evaldf$Personal_Loan)
+perf <- performance(pred, "tpr", "fpr")
+plot(perf,main = "ROC curve for Cart Model")
+auc <- performance(pred,"auc"); 
+auc <- as.numeric(auc@y.values)
+auc
+KS_test <- max(attr(perf, 'y.values')[[1]]-attr(perf, 'x.values')[[1]])
+KS_test
+install.packages("ineq")
+library(ineq)
+gini_CART = ineq(evaldf$CART_prob[,"1"], type="Gini")
+
+with(evaldf, table(Personal_Loan, CART_pred))
+
+print(gini_CART)
+
+##Using Test Data Set
+print("CART Evaluation Params For test Data")
+confusionMatrix(evaldf_test$CART_pred , evaldf_test$Personal_Loan)
+pred <- prediction(evaldf_test$CART_prob[,"1"], evaldf_test$Personal_Loan)
+perf <- performance(pred, "tpr", "fpr")
+plot(perf,main = "ROC curve for Cart Model for Test Data")
+auc <- performance(pred,"auc"); 
+auc <- as.numeric(auc@y.values)
+auc
+KS_test <- max(attr(perf, 'y.values')[[1]]-attr(perf, 'x.values')[[1]])
+KS_test
+
+gini_CART_test = ineq(evaldf_test$CART_prob[,"1"], type="Gini")
+
+print(gini_CART_test)
+
+```
+##Evaluation for the Random Forest
+```{r}
+#Evaluation for the Random Forest
+train$predict.class=predict(tRndFor,train,type="class")
+train$prob1=predict(tRndFor,train,type="prob")[,"1"]
+head(train)
+tbl = table(train$Personal_Loan,train$predict.class)
+print(tbl)
+print(22/5000)
+confusionMatrix(train$predict.class , train$Personal_Loan)
+pred <- prediction(train$prob1, train$Personal_Loan)
+perf <- performance(pred, "tpr", "fpr")
+plot(perf,main = "ROC curve for Random Forest Model")
+auc <- performance(pred,"auc"); 
+auc <- as.numeric(auc@y.values)
+auc
+KS_test <- max(attr(perf, 'y.values')[[1]]-attr(perf, 'x.values')[[1]])
+KS_test
+
+#Using Test Dataset
+
+test$predict.class=predict(tRndFor,test,type="class")
+test$prob1=predict(tRndFor,test,type="prob")[,"1"]
+confusionMatrix(test$predict.class , test$Personal_Loan)
+pred <- prediction(test$prob1, test$Personal_Loan)
+perf <- performance(pred, "tpr", "fpr")
+plot(perf,main = "ROC curve for Random Forest Model for Test Data")
+auc <- performance(pred,"auc"); 
+auc <- as.numeric(auc@y.values)
+auc
+KS_test <- max(attr(perf, 'y.values')[[1]]-attr(perf, 'x.values')[[1]])
+KS_test
+
+gini_RF_test = ineq(test$prob1, type="Gini")
+
+print(gini_RF_test)
+
+```
+```{r}
+qs=quantile(train$prob1,prob=seq(0,1,length=11))
+print(qs)
+
+threshold=qs[10]
+mean(train$Personal_Loan[train$prob1>threshold]=="1")
+nrow(train)
+```
+
+
+```{r}
+test$predict.class=predict(tRndFor,test,type="class")
+test$prob1=predict(tRndFor,test,type="prob")[,"1"]
+nrow(test)
+head(test)
+tbl = table(test$Personal_Loan,test$predict.class)
+print(tbl)
+#% of customers who would respond
+mean(test$Personal_Loan[test$prob1>threshold]=="1")
+```
+```
